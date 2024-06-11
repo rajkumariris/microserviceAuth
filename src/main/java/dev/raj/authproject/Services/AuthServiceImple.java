@@ -13,6 +13,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -29,11 +30,12 @@ public class AuthServiceImple {
 
     AuthUserRepository authUserRepository;
     AuthSessionRepository authSessionRepository;
-    BCryptPasswordEncoder bCryptPasswordEncoder;
-   public AuthServiceImple(AuthUserRepository authUserRepository, AuthSessionRepository authSessionRepository) {
+    PasswordEncoder passwordEncoder;
+   public AuthServiceImple(AuthUserRepository authUserRepository, AuthSessionRepository authSessionRepository,
+                           PasswordEncoder passwordEncoder){
        //, BCryptPasswordEncoder bCryptPasswordEncoder
         this.authUserRepository= authUserRepository;
-         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
+         this.passwordEncoder = passwordEncoder;
          this.authSessionRepository = authSessionRepository;
     }
 
@@ -45,7 +47,7 @@ public class AuthServiceImple {
        User user = usergiven.get();
 
        // trying to check with the given password and hashed password in db
-       if(!bCryptPasswordEncoder.matches(password, user.getPassword())){
+       if(!passwordEncoder.matches(password, user.getPassword())){
            throw new UserNotFoundException("paaaword not matched");
         }
        //generates random string of 20 characters and for now sends as a token
@@ -83,7 +85,7 @@ public class AuthServiceImple {
         }
             User user1 = new User();
             user1.setEmail(email);
-            user1.setPassword(bCryptPasswordEncoder.encode(password));
+            user1.setPassword(passwordEncoder.encode(password));
             User savedUser = authUserRepository.save(user1);
             return UserDto.from(savedUser);
     }
